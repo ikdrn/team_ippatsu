@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexLegendsチーム決め一発くん</title>
+  <style>
+  /* ------------------------------------------------------------
+     01. カラーパレット & カスタムプロパティ
+  ------------------------------------------------------------ */
+  :root{
+    --color-primary: #1976d2;
+    --color-primary-dark: #115293;
+    --color-bg: #f4f7fa;
+    --color-card-bg: #fff;
+    --color-text: #212121;
+    --color-muted: #666;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+    --shadow-hover: 0 6px 20px rgba(0,0,0,0.15);
+    --transition: 0.2s ease;
+    --font-base: 18px;
+  }
+
+  /* ------------------------------------------------------------
+     02. リセット（最小限: margin/padding/box-sizing）
+  ------------------------------------------------------------ */
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100vh}
+  body{
+    margin:0;
+    padding:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP";
+    background:var(--color-bg);
+    color:var(--color-text);
+    font-size:var(--font-base);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.4;
+  }
+
+  /* ------------------------------------------------------------
+     03. レイアウト（全画面レイアウト）
+  ------------------------------------------------------------ */
+  .app{
+    display:flex;
+    flex-direction:column;
+    max-width:1200px;
+    margin:auto;
+    height:100%;
+    padding:1rem 2rem;
+  }
+  .app__header{
+    text-align:center;
+    margin-bottom:1.5rem;
+    padding:2rem;
+    background:linear-gradient(135deg,#1976d2,#115293);
+    color:#fff;
+    border-radius:var(--radius);
+  }
+  .app__title{font-size:2.5rem;margin:0;font-weight:700;}
+  .app__subtitle{font-size:1.1rem;color:rgba(255,255,255,0.85);margin-top:.4rem;}
+  .app__lead{
+    margin-top:.8rem;
+    text-align:center;
+    color:var(--color-muted);
+    max-width:880px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  /* ------------------------------------------------------------
+     04. ナビゲーション（テキストリンク）
+  ------------------------------------------------------------ */
+  .nav{text-align:center;margin:1rem 0;}
+  .nav a{
+    margin:0 .8rem;
+    color: var(--color-primary);
+    font-weight:bold;
+    font-size:1.1rem;
+    text-decoration:none;
+  }
+  .nav a.active{text-decoration:underline;}
+
+  /* ------------------------------------------------------------
+     05. フォーム系（.form-group, .input, .select, .btn）
+  ------------------------------------------------------------ */
+  .form{display:flex;flex-direction:column;gap:1rem}
+  .form-group{
+    display:flex;
+    gap:.6rem;
+    align-items:center;
+    padding:2rem;
+    border-radius:var(--radius);
+    transition:var(--transition);
+    background:transparent;
+  }
+  .input{
+    flex:1;
+    padding:2rem;
+    border-radius:var(--radius);
+    border:1px solid rgba(0,0,0,0.06);
+    transition:var(--transition);
+    font-size:1rem;
+  }
+  .input:focus{
+    outline:none;
+    box-shadow:0 6px 18px rgba(25,118,210,0.06);
+  }
+  .select{
+    flex:1;                     /* ★ ここで横幅いっぱいに伸ばす */
+    padding:2rem;
+    border-radius:var(--radius);
+    border:1px solid rgba(0,0,0,0.06);
+    transition:var(--transition);
+    font-size:1rem;
+    background:#fff;
+  }
+  .btn{
+    padding:2rem;
+    border-radius:var(--radius);
+    border:none;
+    background: var(--color-primary);
+    color:#fff;
+    cursor:pointer;
+    transition:var(--transition);
+    font-weight:700;
+  }
+  .btn:hover{background:var(--color-primary-dark)}
+  .btn[disabled]{opacity:.6;cursor:not-allowed}
+  .copy-btn{margin-top:0.5rem;background:#4caf50}
+  .copy-btn:hover{background:#388e3c}
+
+  /* ------------------------------------------------------------
+     06. 名前リスト・シャッフルリスト
+  ------------------------------------------------------------ */
+  .name-list,.shuffle-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.8rem
+  }
+  .name-item,.shuffle-item{
+    background: var(--color-card-bg);
+    padding:.6rem .9rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display:flex;
+    align-items:center;
+    gap:.4rem;
+  }
+  .name-item span,.shuffle-item span{
+    padding:.2rem .5rem;
+    border-radius:var(--radius);
+    font-weight:700;
+  }
+  .name-item button{
+    background:transparent;
+    border:none;
+    color:#d32f2f;
+    font-size:1rem;
+    cursor:pointer;
+  }
+
+  /* ------------------------------------------------------------
+     07. 結果エリア（CSS Grid）
+  ------------------------------------------------------------ */
+  .result{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap:1rem;
+  }
+  .team-card{
+    background: var(--color-card-bg);
+    padding:1rem;
+    border-radius:var(--radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+  }
+  .team-card:hover{
+    transform:scale(1.02);
+    box-shadow: var(--shadow-hover);
+  }
+  .team-title{font-weight:bold; font-size:1.2rem; margin-bottom:.5rem;}
+  .team-members{
+    list-style:none;
+    padding:0;
+    margin:0
+  }
+  .team-members li{
+    padding:.3rem .5rem;
+    margin-bottom:.3rem;
+    border-radius:var(--radius);
+  }
+
+  /* ------------------------------------------------------------
+     08. ユーティリティクラス
+  ------------------------------------------------------------ */
+  .mb-lg { margin-bottom:2rem; }
+  .text-center { text-align:center; }
+
+  /* ------------------------------------------------------------
+     09. 微調整（エラーや補助テキスト）
+  ------------------------------------------------------------ */
+  .error{color:#d32f2f;font-weight:700;margin-top:.4rem}
+  .muted{color:var(--color-muted);font-size:.95rem}
+  .copy-toast{color:#4caf50;margin-left:1rem;font-weight:600}
+  </style>
+</head>
+<body>
+  <div id="app" class="app" role="application" aria-label="ApexLegends チーム決めアプリ"></div>
+
+  <!-- Vue 3 UMD ビルド -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+  /* ------------------------------------------------------------
+     01. ユーティリティ関数
+  ------------------------------------------------------------ */
+  function shuffle(array){
+    const a = array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()* (i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function getUniqueName(base, list){
+    const clean = base.trim();
+    if(!clean) return '';
+    if(!list.includes(clean)) return clean;
+    let idx = 2;
+    let candidate = `${clean}_${idx}`;
+    while(list.includes(candidate)){
+      idx++;
+      candidate = `${clean}_${idx}`;
+    }
+    return candidate;
+  }
+
+  function generateUniqueColor(usedColors = new Set()){
+    const index = usedColors.size;
+    const GOLDEN_ANGLE = 137.508;
+    const hue = (index * GOLDEN_ANGLE) % 360;
+    const color = `hsl(${Math.round(hue)},70%,80%)`;
+    if(usedColors.has(color)){
+      for(let i=1;i<360;i++){
+        const h = (hue + i * GOLDEN_ANGLE) % 360;
+        const c = `hsl(${Math.round(h)},70%,80%)`;
+        if(!usedColors.has(c)) return c;
+      }
+    }
+    return color;
+  }
+
+  /* ------------------------------------------------------------
+     02. 効果音生成
+  ------------------------------------------------------------ */
+  function makeBeepDataURI(startFreq = 1200, endFreq = 700, duration = 0.2, sampleRate = 44100){
+    const sampleCount = Math.floor(sampleRate * duration);
+    const amplitude = 0.8;
+    const bytesPerSample = 2;
+    const blockAlign = bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = sampleCount * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    function writeString(offset, str){
+      for(let i=0;i<str.length;i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+    writeString(0,'RIFF');
+    view.setUint32(4,36 + dataSize,true);
+    writeString(8,'WAVE');
+    writeString(12,'fmt ');
+    view.setUint32(16,16,true);
+    view.setUint16(20,1,true);
+    view.setUint16(22,1,true);
+    view.setUint32(24,sampleRate,true);
+    view.setUint32(28,byteRate,true);
+    view.setUint16(32,blockAlign,true);
+    view.setUint16(34,16,true);
+    writeString(36,'data');
+    view.setUint32(40,dataSize,true);
+
+    let offset = 44;
+    for(let i=0;i<sampleCount;i++){
+      const t = i / sampleRate;
+      const k = i / sampleCount;
+      const freq = startFreq + (endFreq - startFreq) * k;
+      const s1 = Math.sin(2*Math.PI*freq*t);
+      const s2 = 0.45*Math.sin(2*Math.PI*freq*2.01*t + 0.3);
+      const s3 = 0.18*Math.sin(2*Math.PI*freq*3.02*t + 0.8);
+      const attack = 0.008;
+      const release = 0.06;
+      let env = 1;
+      if(t < attack) env = t / attack;
+      else if(t > duration - release) env = Math.max(0,(duration - t) / release);
+      const noise = (Math.random()*2-1) * 0.0012;
+      const sample = amplitude * env * (0.68*s1 + 0.24*s2 + 0.08*s3) + noise;
+      const intSample = Math.max(-1, Math.min(1, sample)) * 0x7fff;
+      view.setInt16(offset, intSample, true);
+      offset += 2;
+    }
+
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunkSize){
+      const chunk = bytes.subarray(i,i+chunkSize);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+    const base64 = btoa(binary);
+    return 'data:audio/wav;base64,'+base64;
+  }
+
+  /* ------------------------------------------------------------
+     03. アプリ本体（Vue 3 Composition API）
+  ------------------------------------------------------------ */
+  const { createApp, ref, computed } = Vue;
+
+  createApp({
+    setup(){
+      /* ---------- state ---------- */
+      const names        = ref([]);
+      const nameColors   = ref({});
+      const inputName    = ref('');
+      const teamCount    = ref(2);
+      const errorMessage = ref('');
+      const currentPage  = ref('add');   // 'add' | 'team'
+      const shuffling    = ref(false);
+      const shuffledList = ref([]);
+      const resultTeams  = ref([]);
+      const copyMessage  = ref('');      // コピー完了メッセージ
+
+      /* ---------- helper ---------- */
+      const isActive = (page)=> computed(()=> currentPage.value===page );
+
+      /* ---------- actions ---------- */
+      function addName(){
+        errorMessage.value = '';
+        const raw = inputName.value||'';
+        const trimmed = raw.trim();
+        if(!trimmed){
+          errorMessage.value = '名前を入力してください。';
+          return;
+        }
+        if(trimmed.length>20){
+          errorMessage.value = '名前は20文字以内で入力してください。';
+          return;
+        }
+        const unique = getUniqueName(trimmed, names.value);
+        const used = new Set(Object.values(nameColors.value||{}));
+        const color = generateUniqueColor(used);
+        names.value.push(unique);
+        nameColors.value = Object.assign({}, nameColors.value, {[unique]:color});
+        inputName.value = '';
+      }
+
+      function deleteName(target){
+        const idx = names.value.indexOf(target);
+        if(idx!==-1) names.value.splice(idx,1);
+        if(Object.prototype.hasOwnProperty.call(nameColors.value, target)){
+          const nc = Object.assign({}, nameColors.value);
+          delete nc[target];
+          nameColors.value = nc;
+        }
+        if(resultTeams.value && resultTeams.value.length){
+          resultTeams.value = assign(names.value, teamCount.value);
+        }
+      }
+
+      function assign(list,cnt){
+        const shuffled = shuffle(list);
+        const teams = Array.from({length:cnt},()=>[]);
+        for(let i=0;i<shuffled.length;i++){
+          teams[i%cnt].push(shuffled[i]);
+        }
+        return teams;
+      }
+
+      function startAssign(){
+        errorMessage.value = '';
+        if(names.value.length===0){
+          errorMessage.value = '名前が1つも登録されていません。';
+          return;
+        }
+        if(teamCount.value>names.value.length){
+          errorMessage.value = 'チーム数が名前数を超えています。';
+          return;
+        }
+        currentPage.value = 'team';
+        shuffling.value = true;
+        const uri = makeBeepDataURI(1200,700,0.18);
+        const audio = new Audio(uri);
+        audio.play().catch(()=>{});
+
+        const id = setInterval(()=>{
+          shuffledList.value = shuffle(names.value);
+        },200);
+
+        setTimeout(()=>{
+          clearInterval(id);
+          shuffling.value = false;
+          shuffledList.value = [];
+          resultTeams.value = assign(names.value, teamCount.value);
+        },3000);
+      }
+
+      /* ---------- Markdown 生成 & コピー ---------- */
+      const markdownResult = computed(()=>{
+        if(!resultTeams.value || !resultTeams.value.length) return '';
+        const lines = [];
+        resultTeams.value.forEach((team, idx)=>{
+          lines.push(`**Team ${idx+1} (${team.length}人)**`);
+          lines.push('```');
+          team.forEach(m=>lines.push(`・${m}`));
+          lines.push('```');
+          lines.push(''); // 空行で区切り
+        });
+        return lines.join('\n');
+      });
+
+      function copyResult(){
+        if(!markdownResult.value) return;
+        navigator.clipboard.writeText(markdownResult.value).then(()=>{
+          copyMessage.value = 'コピーしました！';
+          setTimeout(()=>{ copyMessage.value = ''; },2000);
+        }).catch(()=>{
+          copyMessage.value = 'コピーに失敗しました';
+          setTimeout(()=>{ copyMessage.value = ''; },2000);
+        });
+      }
+
+      return {
+        names, nameColors, inputName, teamCount, errorMessage, currentPage,
+        shuffling, shuffledList, resultTeams, copyMessage,
+        isActive, addName, deleteName, startAssign, copyResult,
+        markdownResult
+      };
+    },
+
+    template: `
+      <header class="app__header" role="banner">
+        <h1 class="app__title">ApexLegendsチーム決め一発くん</h1>
+        <p class="app__subtitle">ワンクリックでシャッフルしてチームを作成します。</p>
+      </header>
+
+      <nav class="nav" aria-label="ページナビゲーション">
+        <a href="#" :class="{ active: isActive('add').value }" @click.prevent="currentPage='add'">名前登録</a>
+        <a href="#" :class="{ active: isActive('team').value }" @click.prevent="currentPage='team'">チーム分け</a>
+      </nav>
+
+      <main>
+        <!-- 名前登録画面 -->
+        <section v-if="currentPage==='add'">
+          <div class="form mb-lg" role="region" aria-label="名前登録セクション">
+            <div class="form-group" aria-label="名前入力グループ">
+              <input class="input" v-model="inputName" @keyup.enter="addName" maxlength="20"
+                     aria-label="名前入力" placeholder="プレイヤー名を入力">
+              <button class="btn" @click.prevent="addName" aria-label="名前を追加">追加</button>
+            </div>
+
+            <div class="form-group" aria-label="チーム数選択と開始（登録画面）">
+              <label class="muted" for="teamTop">チーム数</label>
+              <select id="teamTop" class="select" v-model.number="teamCount"
+                      aria-label="チーム数を選択（登録画面）">
+                <option v-for="n in 9" :value="n+1">{{ n+1 }} チーム</option>
+              </select>
+              <button class="btn" @click.prevent="startAssign"
+                      :disabled="shuffling" aria-label="チーム分けを開始（登録画面）">
+                チーム分け開始
+              </button>
+            </div>
+
+            <div v-if="errorMessage" class="error" role="alert">{{ errorMessage }}</div>
+
+            <div class="muted">登録済みの名前（削除ボタンで削除できます）</div>
+            <div class="name-list" aria-live="polite">
+              <div v-for="n in names" :key="n" class="name-item" :title="n">
+                <span :style="{ background: nameColors[n] }">{{ n }}</span>
+                <button @click.prevent="deleteName(n)" :aria-label="n + ' を削除'">✕</button>
+              </div>
+              <div v-if="names.length===0" class="muted">まだ名前が登録されていません。</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- チーム決め画面 -->
+        <section v-if="currentPage==='team'">
+          <div class="form mb-lg" role="region" aria-label="チーム分けセクション">
+            <div class="form-group" aria-label="チーム数選択グループ">
+              <label class="muted" for="teamCount">チーム数</label>
+              <select id="teamCount" class="select" v-model.number="teamCount"
+                      aria-label="チーム数を選択">
+                <option v-for="n in 9" :value="n+1">{{ n+1 }} チーム</option>
+              </select>
+              <button class="btn" @click.prevent="startAssign"
+                      :disabled="shuffling" aria-label="チーム分けを開始">
+                チーム分け開始
+              </button>
+            </div>
+
+            <div v-if="errorMessage" class="error" role="alert">{{ errorMessage }}</div>
+
+            <div v-if="shuffling" class="mb-lg">
+              <div class="muted">シャッフル中...</div>
+              <div class="shuffle-list" aria-live="polite">
+                <div v-for="(s, idx) in shuffledList" :key="s + '_' + idx" class="shuffle-item">
+                  <span :style="{ background: nameColors[s] || '#eee' }">{{ s }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="resultTeams && resultTeams.length" class="result" aria-live="polite">
+              <div v-for="(team, idx) in resultTeams" :key="'team_' + idx"
+                   class="team-card" :aria-label="'チーム' + (idx+1)">
+                <div class="team-title">チーム {{ idx + 1 }}（{{ team.length }}人）</div>
+                <ul class="team-members">
+                  <li v-for="m in team" :key="m" :style="{ background: nameColors[m] }">{{ m }}</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- コピー用 UI -->
+            <div v-if="resultTeams && resultTeams.length" class="copy-area text-center">
+              <button class="btn copy-btn" @click="copyResult">結果をコピー</button>
+              <span class="copy-toast" v-if="copyMessage">{{ copyMessage }}</span>
+            </div>
+
+            <div v-if="!shuffling && (!resultTeams || !resultTeams.length)" class="muted">
+              チーム分けの結果はここに表示されます。
+            </div>
+          </div>
+        </section>
+      </main>
+    `
+  }).mount('#app');
+  </script>
+</body>
+</html>
