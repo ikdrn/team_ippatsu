@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Legendsチーム決め一発くん</title>
+  <style>
+  /* ============================================================
+     01. カラーパレット & カスタムプロパティ
+  ============================================================ */
+  :root {
+    /* Primary colors */
+    --color-primary: #1976d2;
+    --color-primary-dark: #115293;
+    --color-bg: #f4f7fa;
+    --color-card-bg: #fff;
+    --color-text: #212121;
+    --color-muted: #666;
+
+    /* Rank colors */
+    --rank-bronze: #CD7F32;
+    --rank-silver: #C0C0C0;
+    --rank-gold: #FFD700;
+    --rank-platinum: #00CED1;
+    --rank-diamond: #9400D3;
+    --rank-master: #FF4500;
+    --rank-predator: #FF0000;
+
+    /* Spacing & styling */
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+    --shadow-hover: 0 6px 20px rgba(0,0,0,0.15);
+    --transition: 0.2s ease;
+    --font-base: 16px;
+  }
+
+  /* ============================================================
+     02. リセット
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100vh; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP";
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--font-base);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     03. レイアウト
+  ============================================================ */
+  .app {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: auto;
+    height: 100%;
+    padding: 1rem 2rem;
+    overflow-y: auto;
+  }
+
+  .app__header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1976d2, #115293);
+    color: #fff;
+    border-radius: var(--radius);
+  }
+
+  .app__title {
+    font-size: 2.2rem;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .app__subtitle {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.9);
+    margin-top: 0.5rem;
+  }
+
+  /* ============================================================
+     04. ナビゲーション
+  ============================================================ */
+  .nav {
+    text-align: center;
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav button {
+    background: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: var(--transition);
+  }
+
+  .nav button.active {
+    background: var(--color-primary);
+    color: #fff;
+  }
+
+  .nav button:hover {
+    box-shadow: var(--shadow);
+  }
+
+  /* ============================================================
+     05. フォーム系
+  ============================================================ */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    background: var(--color-card-bg);
+    box-shadow: var(--shadow);
+  }
+
+  .form-group.full {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-group.full > * {
+    flex: 1;
+  }
+
+  .input, .select {
+    padding: 0.8rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(0,0,0,0.12);
+    font-size: 0.95rem;
+    transition: var(--transition);
+    font-family: inherit;
+  }
+
+  .input:focus, .select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+  }
+
+  .input {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .select {
+    min-width: 120px;
+  }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--color-primary);
+    color: #fff;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn.secondary {
+    background: #6c757d;
+  }
+
+  .btn.secondary:hover:not(:disabled) {
+    background: #5a6268;
+  }
+
+  .btn.copy-btn {
+    background: #4caf50;
+  }
+
+  .btn.copy-btn:hover:not(:disabled) {
+    background: #388e3c;
+  }
+
+  .label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     06. プレイヤーリスト
+  ============================================================ */
+  .player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .player-item {
+    background: var(--color-card-bg);
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-left: 4px solid var(--color-muted);
+    transition: var(--transition);
+  }
+
+  .player-item:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .player-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #fff;
+  }
+
+  .rank-bronze { --rank-color: var(--rank-bronze); }
+  .rank-silver { --rank-color: var(--rank-silver); }
+  .rank-gold { --rank-color: var(--rank-gold); }
+  .rank-platinum { --rank-color: var(--rank-platinum); }
+  .rank-diamond { --rank-color: var(--rank-diamond); }
+  .rank-master { --rank-color: var(--rank-master); }
+  .rank-predator { --rank-color: var(--rank-predator); }
+
+  .player-badge {
+    background: var(--rank-color, var(--color-primary));
+  }
+
+  .player-item.rank-bronze { border-left-color: var(--rank-bronze); }
+  .player-item.rank-silver { border-left-color: var(--rank-silver); }
+  .player-item.rank-gold { border-left-color: var(--rank-gold); }
+  .player-item.rank-platinum { border-left-color: var(--rank-platinum); }
+  .player-item.rank-diamond { border-left-color: var(--rank-diamond); }
+  .player-item.rank-master { border-left-color: var(--rank-master); }
+  .player-item.rank-predator { border-left-color: var(--rank-predator); }
+
+  .player-delete-btn {
+    background: transparent;
+    border: none;
+    color: #d32f2f;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: var(--transition);
+  }
+
+  .player-delete-btn:hover {
+    color: #b71c1c;
+  }
+
+  /* ============================================================
+     07. チーム表示（結果）
+  ============================================================ */
+  .result {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .team-card {
+    background: var(--color-card-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border-top: 4px solid var(--color-primary);
+  }
+
+  .team-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .team-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0 0 1rem 0;
+    color: var(--color-primary);
+  }
+
+  .team-stats {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    flex-wrap: wrap;
+  }
+
+  .team-stat-badge {
+    background: rgba(0,0,0,0.05);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .team-members {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .team-member {
+    padding: 0.8rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--color-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .member-info {
+    flex: 1;
+  }
+
+  .member-name {
+    font-weight: 600;
+  }
+
+  .member-rank {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  /* ============================================================
+     08. ユーティリティ
+  ============================================================ */
+  .mb-lg { margin-bottom: 2rem; }
+  .text-center { text-align: center; }
+  .error {
+    color: #d32f2f;
+    font-weight: 600;
+    padding: 0.8rem;
+    background: rgba(211, 47, 47, 0.05);
+    border-radius: var(--radius);
+    margin-top: 0.5rem;
+  }
+
+  .muted {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+
+  .copy-toast {
+    color: #4caf50;
+    font-weight: 600;
+    margin-left: 1rem;
+  }
+
+  .share-section {
+    padding: 1.5rem;
+    background: var(--color-card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-top: 1rem;
+  }
+
+  .share-section h3 {
+    margin-top: 0;
+    font-size: 1rem;
+  }
+
+  .share-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: var(--radius);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .shuffle-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1rem 0;
+  }
+
+  .shuffle-item {
+    background: var(--color-card-bg);
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    animation: pulse 0.3s;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-muted);
+  }
+
+  @media (max-width: 768px) {
+    .app {
+      padding: 1rem;
+    }
+
+    .app__title {
+      font-size: 1.8rem;
+    }
+
+    .form-group {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .form-group > * {
+      width: 100% !important;
+    }
+
+    .nav {
+      flex-direction: column;
+    }
+
+    .result {
+      grid-template-columns: 1fr;
+    }
+  }
+  </style>
+</head>
+<body>
+  <div id="app" class="app" role="application" aria-label="Apex Legends チーム決めアプリ"></div>
+
+  <!-- Vue 3 UMD -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <script>
+  /* ============================================================
+     ユーティリティ関数
+  ============================================================ */
+
+  const RANKS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Predator'];
+  const CHARACTERS = ['Wraith', 'Bloodhound', 'Gibraltar', 'Lifeline', 'Pathfinder', 'Bangalore',
+                       'Caustic', 'Mirage', 'Octane', 'Wattson', 'Crypto', 'Revenant', 'Loba',
+                       'Rampart', 'Horizon', 'Fuse', 'Valkyrie', 'Seer', 'Ash', 'Mad Maggie',
+                       'Newcastle', 'Vantage', 'Catalyst', 'Ballistic', 'Conduit'];
+
+  function shuffle(array) {
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function encodePlayersForURL(players) {
+    // Format: name|rank|character;name|rank|character;...
+    return btoa(players.map(p => `${p.name}|${p.rank}|${p.character}`).join(';'));
+  }
+
+  function decodePlayersFromURL(encoded) {
+    try {
+      if (!encoded) return [];
+      const decoded = atob(encoded);
+      return decoded.split(';').map(item => {
+        const [name, rank, character] = item.split('|');
+        return { name: name || 'Unknown', rank: rank || 'Bronze', character: character || 'Wraith' };
+      }).filter(p => p.name && p.name !== 'Unknown');
+    } catch (e) {
+      console.error('URL decode error:', e);
+      return [];
+    }
+  }
+
+  function getUniqueName(base, list) {
+    const clean = base.trim();
+    if (!clean) return '';
+    const names = list.map(p => p.name);
+    if (!names.includes(clean)) return clean;
+    let idx = 2;
+    let candidate = `${clean}_${idx}`;
+    while (names.includes(candidate)) {
+      idx++;
+      candidate = `${clean}_${idx}`;
+    }
+    return candidate;
+  }
+
+  /* ============================================================
+     Vue アプリケーション
+  ============================================================ */
+  const { createApp, ref, computed, watch } = Vue;
+
+  createApp({
+    setup() {
+      /* -------- State -------- */
+      const players = ref([]);
+      const inputName = ref('');
+      const inputRank = ref('Bronze');
+      const inputCharacter = ref('Wraith');
+      const teamCount = ref(2);
+      const errorMessage = ref('');
+      const currentPage = ref('add');
+      const shuffling = ref(false);
+      const shuffledList = ref([]);
+      const resultTeams = ref([]);
+      const copyMessage = ref('');
+      const filteredRank = ref('');
+
+      /* -------- Computed -------- */
+      const playerList = computed(() => {
+        if (!filteredRank.value) return players.value;
+        return players.value.filter(p => p.rank === filteredRank.value);
+      });
+
+      const shareURL = computed(() => {
+        if (players.value.length === 0) return '';
+        const encoded = encodePlayersForURL(players.value);
+        const baseURL = window.location.origin + window.location.pathname;
+        return `${baseURL}?players=${encoded}`;
+      });
+
+      const rankStats = computed(() => {
+        const stats = {};
+        RANKS.forEach(rank => {
+          stats[rank] = players.value.filter(p => p.rank === rank).length;
+        });
+        return stats;
+      });
+
+      /* -------- Methods -------- */
+      function addPlayer() {
+        errorMessage.value = '';
+        const trimmed = inputName.value.trim();
+        if (!trimmed) {
+          errorMessage.value = 'プレイヤー名を入力してください。';
+          return;
+        }
+        if (trimmed.length > 20) {
+          errorMessage.value = '名前は20文字以内で入力してください。';
+          return;
+        }
+
+        const uniqueName = getUniqueName(trimmed, players.value);
+        players.value.push({
+          name: uniqueName,
+          rank: inputRank.value,
+          character: inputCharacter.value
+        });
+
+        inputName.value = '';
+        inputRank.value = 'Bronze';
+        inputCharacter.value = 'Wraith';
+      }
+
+      function deletePlayer(index) {
+        players.value.splice(index, 1);
+        if (resultTeams.value.length) {
+          executeAssign();
+        }
+      }
+
+      function assignTeams(list, cnt) {
+        const shuffled = shuffle(list);
+        const teams = Array.from({ length: cnt }, () => []);
+        for (let i = 0; i < shuffled.length; i++) {
+          teams[i % cnt].push(shuffled[i]);
+        }
+        return teams;
+      }
+
+      function executeAssign() {
+        errorMessage.value = '';
+        if (players.value.length === 0) {
+          errorMessage.value = 'プレイヤーが登録されていません。';
+          return;
+        }
+        if (teamCount.value > players.value.length) {
+          errorMessage.value = 'チーム数がプレイヤー数を超えています。';
+          return;
+        }
+
+        currentPage.value = 'team';
+        shuffling.value = true;
+        shuffledList.value = [];
+
+        const id = setInterval(() => {
+          shuffledList.value = shuffle(players.value);
+        }, 150);
+
+        setTimeout(() => {
+          clearInterval(id);
+          shuffling.value = false;
+          shuffledList.value = [];
+          resultTeams.value = assignTeams(players.value, teamCount.value);
+        }, 2800);
+      }
+
+      function getTeamStats(team) {
+        const stats = {};
+        RANKS.forEach(rank => {
+          stats[rank] = team.filter(p => p.rank === rank).length;
+        });
+        return Object.entries(stats)
+          .filter(([_, count]) => count > 0)
+          .map(([rank, count]) => `${rank}: ${count}`);
+      }
+
+      function copyResult() {
+        if (resultTeams.value.length === 0) return;
+        const lines = [];
+        resultTeams.value.forEach((team, idx) => {
+          lines.push(`**Team ${idx + 1} (${team.length}人)**`);
+          lines.push('```');
+          team.forEach(member => {
+            lines.push(`・${member.name} (${member.rank}, ${member.character})`);
+          });
+          lines.push('```');
+          lines.push('');
+        });
+
+        navigator.clipboard.writeText(lines.join('\n')).then(() => {
+          copyMessage.value = 'コピーしました！';
+          setTimeout(() => { copyMessage.value = ''; }, 2000);
+        }).catch(() => {
+          copyMessage.value = 'コピーに失敗しました';
+          setTimeout(() => { copyMessage.value = ''; }, 2000);
+        });
+      }
+
+      function copyShareURL() {
+        if (!shareURL.value) return;
+        navigator.clipboard.writeText(shareURL.value).then(() => {
+          copyMessage.value = 'リンクをコピーしました！';
+          setTimeout(() => { copyMessage.value = ''; }, 2000);
+        });
+      }
+
+      function loadFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get('players');
+        if (encoded) {
+          players.value = decodePlayersFromURL(encoded);
+        }
+      }
+
+      /* -------- Lifecycle -------- */
+      loadFromURL();
+
+      // localStorage 自動保存
+      watch(() => players.value, (newPlayers) => {
+        localStorage.setItem('apex_players', JSON.stringify(newPlayers));
+      }, { deep: true });
+
+      // 初期ロード（URLにデータがない場合、localStorageから復元）
+      if (players.value.length === 0) {
+        const saved = localStorage.getItem('apex_players');
+        if (saved) {
+          try {
+            players.value = JSON.parse(saved);
+          } catch (e) {
+            console.error('localStorage parse error:', e);
+          }
+        }
+      }
+
+      return {
+        players, playerList, inputName, inputRank, inputCharacter, teamCount, errorMessage,
+        currentPage, shuffling, shuffledList, resultTeams, copyMessage, filteredRank,
+        shareURL, rankStats, RANKS, CHARACTERS,
+        addPlayer, deletePlayer, executeAssign, copyResult, copyShareURL,
+        getTeamStats
+      };
+    },
+
+    template: `
+      <header class="app__header" role="banner">
+        <h1 class="app__title">Apex Legends チーム決め一発くん</h1>
+        <p class="app__subtitle">ワンクリックでシャッフルしてチームを作成します</p>
+      </header>
+
+      <nav class="nav" aria-label="ページナビゲーション">
+        <button :class="{ active: currentPage === 'add' }" @click="currentPage = 'add'">
+          プレイヤー登録
+        </button>
+        <button :class="{ active: currentPage === 'team' }" @click="currentPage = 'team'">
+          チーム分け
+        </button>
+      </nav>
+
+      <main>
+        <!-- プレイヤー登録画面 -->
+        <section v-if="currentPage === 'add'" class="mb-lg">
+          <div class="form">
+            <!-- プレイヤー追加フォーム -->
+            <div class="form-group full">
+              <div style="display: flex; gap: 0.8rem; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 150px;">
+                  <label class="label">プレイヤー名</label>
+                  <input class="input" v-model="inputName" @keyup.enter="addPlayer"
+                         maxlength="20" placeholder="名前を入力">
+                </div>
+                <div style="min-width: 130px;">
+                  <label class="label">ランク</label>
+                  <select class="select" v-model="inputRank">
+                    <option v-for="rank in RANKS" :value="rank">{{ rank }}</option>
+                  </select>
+                </div>
+                <div style="min-width: 130px;">
+                  <label class="label">キャラクター</label>
+                  <select class="select" v-model="inputCharacter">
+                    <option v-for="char in CHARACTERS" :value="char">{{ char }}</option>
+                  </select>
+                </div>
+                <button class="btn" @click="addPlayer" style="padding: 0.8rem 1.5rem;">
+                  追加
+                </button>
+              </div>
+              <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+            </div>
+
+            <!-- チーム数選択とシャッフル開始 -->
+            <div class="form-group">
+              <label class="label" for="teamCount">チーム数</label>
+              <select id="teamCount" class="select" v-model.number="teamCount">
+                <option v-for="n in 9" :value="n+1">{{ n+1 }} チーム</option>
+              </select>
+              <button class="btn" @click="executeAssign" :disabled="shuffling">
+                チーム分け開始
+              </button>
+            </div>
+
+            <!-- ランク統計 -->
+            <div class="form-group">
+              <div>
+                <label class="label">ランク別プレイヤー数</label>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                  <span v-for="rank in RANKS" :key="rank"
+                        style="padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                    <span :style="{
+                      background: \`var(--rank-\${rank.toLowerCase()})\`,
+                      color: 'white',
+                      padding: '0.3rem 0.6rem',
+                      border-radius: '4px',
+                      display: 'inline-block'
+                    }">{{ rank }}: {{ rankStats[rank] }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- プレイヤーリスト -->
+            <div>
+              <label class="label">登録済みプレイヤー ({{ players.length }}人)</label>
+              <div class="player-list" v-if="players.length > 0">
+                <div v-for="(p, idx) in players" :key="idx"
+                     :class="['player-item', \`rank-\${p.rank.toLowerCase()}\`]\">
+                  <span class="player-badge">{{ p.rank }}</span>
+                  <div style="flex: 1;">
+                    <div style="font-weight: 600;">{{ p.name }}</div>
+                    <div class="muted" style="font-size: 0.8rem;">{{ p.character }}</div>
+                  </div>
+                  <button class="player-delete-btn" @click="deletePlayer(idx)"
+                          :aria-label="\`\${p.name} を削除\`">✕</button>
+                </div>
+              </div>
+              <div v-else class="empty-state">
+                プレイヤーがまだ登録されていません
+              </div>
+            </div>
+
+            <!-- URL共有セクション -->
+            <div v-if="players.length > 0" class="share-section">
+              <h3>プレイヤーリストを共有</h3>
+              <input class="share-input" :value="shareURL" readonly>
+              <button class="btn copy-btn" @click="copyShareURL">
+                リンクをコピー
+              </button>
+              <span class="copy-toast" v-if="copyMessage">{{ copyMessage }}</span>
+              <p class="muted">このリンクを他のユーザーと共有すると、登録済みプレイヤーがロードされます</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- チーム分け画面 -->
+        <section v-if="currentPage === 'team'" class="mb-lg">
+          <div class="form">
+            <!-- チーム数と再シャッフル -->
+            <div class="form-group">
+              <label class="label" for="teamCount2">チーム数</label>
+              <select id="teamCount2" class="select" v-model.number="teamCount">
+                <option v-for="n in 9" :value="n+1">{{ n+1 }} チーム</option>
+              </select>
+              <button class="btn" @click="executeAssign" :disabled="shuffling">
+                再シャッフル
+              </button>
+            </div>
+
+            <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+
+            <!-- シャッフル中 -->
+            <div v-if="shuffling" class="mb-lg">
+              <div class="muted">シャッフル中...</div>
+              <div class="shuffle-list">
+                <div v-for="(p, idx) in shuffledList" :key="\`\${p.name}_\${idx}\`"
+                     class="shuffle-item"
+                     :class="\`rank-\${p.rank.toLowerCase()}\`"\>
+                  <span class="player-badge">{{ p.rank }}</span>
+                  <span style="font-weight: 600;">{{ p.name }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- チーム結果 -->
+            <div v-if="resultTeams && resultTeams.length" class="result">
+              <div v-for="(team, idx) in resultTeams" :key="\`team_\${idx}\`" class="team-card">
+                <div class="team-title">Team {{ idx + 1 }}（{{ team.length }}人）</div>
+                <div class="team-stats">
+                  <span v-for="stat in getTeamStats(team)" :key="stat" class="team-stat-badge">
+                    {{ stat }}
+                  </span>
+                </div>
+                <ul class="team-members">
+                  <li v-for="member in team" :key="member.name" class="team-member">
+                    <div class="member-info">
+                      <div class="member-name">{{ member.name }}</div>
+                      <div class="member-rank">{{ member.rank }} / {{ member.character }}</div>
+                    </div>
+                    <span class="player-badge"
+                          :style="{ background: \`var(--rank-\${member.rank.toLowerCase()})\` }\">
+                      {{ member.rank }}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div v-if="!shuffling && (!resultTeams || !resultTeams.length)" class="empty-state">
+              チーム分けの結果はここに表示されます
+            </div>
+
+            <!-- コピーボタン -->
+            <div v-if="resultTeams && resultTeams.length" class="text-center" style="margin-top: 2rem;">
+              <button class="btn copy-btn" @click="copyResult">結果をコピー</button>
+              <span class="copy-toast" v-if="copyMessage">{{ copyMessage }}</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    `
+  }).mount('#app');
+  </script>
+</body>
+</html>
